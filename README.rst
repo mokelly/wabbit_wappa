@@ -16,8 +16,9 @@ Features
 Getting Started
 ****************
 
-If you're unfamiliar with Vorpal Wabbit, this documentation is no substitute for the `detailed tutorials <https://github.com/JohnLangford/vowpal_wabbit/wiki/Tutorial>`_
- at the VW wiki.  You'll eventually need to read those to understand VW's advanced features.
+If you're unfamiliar with Vorpal Wabbit, this documentation is no substitute for 
+the `detailed tutorials <https://github.com/JohnLangford/vowpal_wabbit/wiki/Tutorial>`_
+at the VW wiki.  You'll eventually need to read those to understand VW's advanced features.
 
 Installation
 ===============
