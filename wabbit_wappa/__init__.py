@@ -8,8 +8,7 @@ TODO:
     this on PyPI in elegant style.
 -Command line generation.  Beginner's mode for common scenarios
     (and a framework to build from).  Make up names for single-char
-    args and those missing documentation (like -i and -f) and accept 
-    short or long form.
+    args (like -i and -f) and accept short or long form.
 -Performance testing.  How much time is spent in wappa vs. VW?
 -Detect VW version in unit tests; for command line generation scenarios,
     unit tests should detect whether it works as expected.
@@ -19,8 +18,8 @@ TODO:
 -Example for README: Alternate train and testing to show how regressor converges over time
 -Example for README: Active learning interface
 -Sklearn compatibility (like vowpal_porpoise)
--Vagrant that builds and installs dependencies (including VW) automatically
-    Then run unit tests to verify install
+**-Vagrant that builds and installs dependencies (including VW) automatically
+    **Then run unit tests to verify install
 -Use pexpect.which() to find executable automatically
 -Handle echo mode introspectively.  Include unit test in which it's switched manually.
 -Installable with pip
@@ -89,7 +88,8 @@ class Namespace():
         If 'escape', any invalid characters are replaced with escape characters.
             ('escape' mode supersedes 'vaildate' mode.)
         If 'cache_string', the results of any to_string() call are cached
-            permanently, ignoring any further changes to self.
+            permanently, ignoring any further changes to self.  (This can
+            speed things up if this Namespace is re-used.)
         """
         self.name = name
         self.scale = scale
@@ -97,6 +97,7 @@ class Namespace():
         self.escape = escape
         self._string = None
         self.features = []
+        self.cache_string = cache_string
         if name:
             if escape:
                 self.name = escape_vw_string(self.name)
@@ -156,6 +157,8 @@ class Namespace():
                 tokens.append(token)
             tokens.append('')  # Spacing element to separate from next pipe character
             output = ' '.join(tokens)
+            if self.cache_string:
+                self._string = output
         else:
             output = self._string
         return output
@@ -189,7 +192,8 @@ class VW():
         self.set_raw_output(raw_output)
 
     def send_line(self, line):
-        """Submit a raw line of text to the VW instance, returning the result.
+        """Submit a raw line of text to the VW instance, returning the 
+        VW output result, formatted according to self.raw_output.
         """
         self.vw_process.sendline(line)  # Send line, along with newline
         result = self._get_response()
@@ -233,6 +237,11 @@ class VW():
                      *args,
                      **kwargs
                      ):
+        """Send a labeled or unlabeled example to the VW instance.
+        All parameters are passed to self.send_line().
+
+        Returns the VW output result, formatted according to self.raw_output.
+        """
         line = self.make_line(*args, **kwargs)
         result = self.send_line(line)
         return result
@@ -245,6 +254,12 @@ class VW():
                   features=None,
                   namespaces=None,
                   ):
+        """Makes and returns an example string in VW syntax.
+        If given, 'response', 'importance', 'base', and 'tag' are used
+        to label the example.  Features for the example come from
+        any given features or namespaces, as well as any previously
+        added namespaces (using them up in the process).
+        """
         if namespaces is not None:
             self.add_namespaces(namespaces)
         if features is not None:
@@ -306,7 +321,15 @@ class VW():
             self.add_namespace(namespace)
         return self
 
-    def get_prediction(self, tag=None, namespaces=None):
+    def get_prediction(self, features=None, tag=None, namespaces=None):
+        """Send an unlabeled example to the trained VW instance.
+        Uses any given features or namespaces, as well as any previously
+        added namespaces (using them up in the process).
+
+        Returns the VW output result, formatted according to self.raw_output."""
+        if features is not None:
+            namespace = Namespace(features=features)
+            self.add_namespace(namespace)
         result = self.send_example(tag=tag, namespaces=namespaces)
         return result
 
@@ -321,6 +344,7 @@ class VW():
         return result
 
     def close(self):
+        """Shut down the VW process."""
         self.vw_process.close()
         # TODO: Give this a context manager interface
 
