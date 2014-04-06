@@ -36,7 +36,7 @@ You have three installation options, depending on your comfort with compiling an
 
      python setup.py install
 
-**If you still need to install VW and its dependencies**::
+**If you still need to install VW (currently version 7.5) and its dependencies**::
 
      scripts/vw-install.sh
      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib;
@@ -67,13 +67,162 @@ Make sure everything is installed and configured correctly by running the tests:
 Usage Example
 ===============
 
- *TODO*
+Let's walk through an example of using Wabbit Wappa.  We will teach VW to recognize
+capitalized characters.
+(You can find the whole script at `examples/capitalization_demo.py`.)
+
+Start a default VW process in Logistic Regression mode::
+
+    >>> from wabbit_wappa import *
+    >>> vw = VW(loss_function='logistic')
+    >>> print vw.command
+    vw --save_resume --quiet --loss_function logistic --predictions /dev/stdout
+
+Behind the scenes, Wabbit Wappa generates a command line including default parameters critical
+to interaction with this wrapper.  VW is immediately run as a subprocess.
+
+Now train the logistic model by sending 10 labeled examples to the VW learner::
+
+    for i in range(10):
+        label, features = get_example()  # Random example; see capitalization_demo.py
+        vw.send_example(label, features=features)
+
+From examples like these
+
+    Label -1: ['z', 'x', 'n', 'F', 'C', 'B', 'f', 'p', 'O'] is mostly lowercase
+    Label -1: ['S', 'u', 'e', 'K', 'f', 'w', 'l', 'C', 'd'] is mostly lowercase
+    Label -1: ['g', 'v', 'q', 'z', 'x', 'B', 'T', 'p', 'M'] is mostly lowercase
+    Label 1: ['j', 'i', 'k', 'D', 'm', 'N', 'Q', 'Z', 'L'] is mostly uppercase
+    Label 1: ['B', 'U', 'V', 'R', 'i', 'h', 'T', 'A', 'v'] is mostly uppercase
+    Label 1: ['Y', 'u', 'R', 'K', 's', 'X', 'g', 'M', 'j'] is mostly uppercase
+    Label -1: ['t', 'L', 'a', 'g', 'D', 'E', 'f', 'G', 'u'] is mostly lowercase
+    Label 1: ['F', 'W', 'y', 'i', 'U', 'E', 'X', 'r', 'e'] is mostly uppercase
+    Label -1: ['s', 'e', 'h', 'U', 'J', 'C', 'j', 'P', 'b'] is mostly lowercase
+    Label 1: ['A', 'k', 'H', 'G', 'a', 'b', 'w', 'Q', 'V'] is mostly uppercase
+
+VW begins to find the pattern: a +1 label if the capital letters outnumber the
+lowercase, and -1 otherwise.
+
+How well trained is our model?  Let's run 100 tests on new random examples::
+
+    for i in range(num_tests):
+        label, features = get_example()
+        # Give the features to the model, witholding the label
+        prediction = vw.get_prediction(features)
+        # Test whether the floating-point prediction is in the right direction
+        if cmp(prediction, 0) == label:
+            num_good_tests += 1
+
+(For logistic regression, a `prediction` value greater than zero representa
+a label of +1; that is why `cmp(prediction, 0)` is used.)
+
+    >>> print "Correctly predicted", num_good_tests, "out of", num_tests
+    Correctly predicted 60 out of 100
+
+We can go on training, without restarting the process.  Let's train on 1,000 more examples::
+
+    for i in range(1000):
+        label, features = get_example()
+        vw.send_example(label, features=features)
+
+Now how good are our predictions?
+
+    Correctly predicted 98 out of 100
+
+We can save the model to disk at any point in the process::
+
+    vw.save_model(filename)
+
+and reload our model using the 'i' argument::
+
+    vw2 = VW(loss_function='logistic', i=filename)
+    VW command: vw -i capitalization.saved.model --save_resume --quiet --loss_function logistic --predictions /dev/stdout
+
+The `vw2` model will now give just the same predictions that `vw` would have; and the default `save_resume=True` parameter
+means we can continue training from where we left off.
+
+To shut down the VW subprocess before your program exits, call `vw.close()`.
+
 
 ****************
 Documentation
 ****************
 
-For now, read the docstrings::
+Namespaces
+===============
+
+The most important Vowpal Wabbit feature not discussed above is namespaces.  VW
+uses namespaces to divide features into groups, which is used for some of its
+advanced features.  Without discussing in detail *why* you would use them,
+here's *how* to use namespaces in Wabbit Wappa.
+
+To reproduce the namespaces in the Vowpal Wabbit tutorial ([url])::
+
+    namespace1 = Namespace('MetricFeatures', 3.28, [('height', 1.5), ('length', 2.0)])
+    namespace2 = Namespace('MetricFeatures', 3.28, [('height', 1.5), ('length', 2.0)])
+
+These namespaces can then be used in training and prediction::
+
+    vw.send_example(response=-1.,
+                    importance=.5,
+                    namespaces=[namespace1, namespace2])
+    prediction = vw.get_prediction(namespaces=[namespace1, namespace2])
+
+Alternatively, Namespaces can be queued up to be used automatically in the next
+example or prediction sent to the VW subprocess::
+
+    vw.add_namespace(namespace1)
+    vw.add_namespace(namespace2)
+    vw.send_example(response=-1., importance=.5)
+
+or
+
+    vw.add_namespace('MetricFeatures', 3.28, [('height', 1.5), ('length', 2.0)])
+    vw.add_namespace('MetricFeatures', 3.28, [('height', 1.5), ('length', 2.0)])
+    prediction = vw.get_prediction()
+
+Tokens in Vowpal Wabbit may not contain the space character, `:` or `|`.  By default,
+Wabbit Wappa will detect and escape these characters::
+
+    >>> namespace = Namespace('Metric Features', 3.28, [('hei|ght', 1.5), ('len:gth', 2.0)])
+    >>> print namespace.to_string()
+    Metric\_Features:3.28 hei\\ght:1.5 len\;gth:2.0
+
+If you wish, you can get the raw VW input lines and pass them to the subprocess directly::
+
+    vw.add_namespace(namespace1)
+    vw.add_namespace(namespace2)
+    raw_line = vw.make_line(response=-1., importance=.5)
+    vw.send_line(raw_line)
+
+    >>> print raw_line
+
+
+VW Options
+===============
+
+In the `VW()` constructor, each named argument corresponds
+to a Vorpal Wabbit option.  Single character keys are mapped to single-dash options;
+e.g. `b=20` yields `-b 20'`.  Multiple character keys map to double-dash options:
+`quiet=True` yields `--quiet`.
+
+Boolean values are interpreted as flags: present if True, absent if False (or not given).
+All non-boolean values are treated as option arguments, as in the -b example above.
+
+If an option argument is a list, that option is repeated multiple times;
+    e.g. `q=['ab', 'bc']` yields `-q ab -q bc`.
+
+Run `vw -h` from your terminal for a listing of most options.
+
+Note that Wabbit Wappa makes no attempt to validate the inputs or
+ensure they are compatible its functionality.  For instance, changing the
+default `predictions='/dev/stdout'` will probably make that `VW()` instance
+non-functional.
+
+API Documentation
+===================
+
+For complete explanation of all parameters, refer to the docstrings::
 
     import wabbit_wappa
     help(wabbit_wappa)

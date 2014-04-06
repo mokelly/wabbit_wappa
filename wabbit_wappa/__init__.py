@@ -2,13 +2,12 @@
 Wrapper for Vowpal Wabbit executable
 
 TODO: 
--Unit tests.  Reproduce examples from wiki and from
+**-Unit tests.  Reproduce examples from wiki and from
     http://hunch.net/~vw/validate.html
 -Documentation.  Use mkdocs and something like picnic to put
     this on PyPI in elegant style.
--Command line generation.  Beginner's mode for common scenarios
-    (and a framework to build from).  Make up names for single-char
-    args (like -i and -f) and accept short or long form.
+**-Command line generation.  Beginner's mode for common scenarios
+    (and a framework to build from).  Accept short or long form.
 -Performance testing.  How much time is spent in wappa vs. VW?
 -Detect VW version in unit tests; for command line generation scenarios,
     unit tests should detect whether it works as expected.
@@ -23,8 +22,6 @@ TODO:
 -Use pexpect.which() to find executable automatically
 -Handle echo mode introspectively.  Include unit test in which it's switched manually.
 -Installable with pip
-
-
 
 
 by Michael J.T. O'Kelly, 2014-2-24
@@ -166,7 +163,7 @@ class Namespace():
 
 class VW():
     """Wrapper for VW executable, handling online input and outputs."""
-    def __init__(self, command, raw_output=False):
+    def __init__(self, command=None, raw_output=False, **kwargs):
         """'command' is the full command-line necessary to run VW.  E.g.
         vw --loss_function logistic -p /dev/stdout --quiet
         -p /dev/stdout --quiet is mandatory for compatibility,
@@ -178,14 +175,18 @@ class VW():
         wabbit_wappa.py does not support any mode that turns off piping to
         stdin or stdout
 
-        raw_output: Instead of returning parsed float(s) as output, return
-            the string literal.
+        raw_output: Instead of returning parsed float(s) in response to examples,
+            return the string literal.
+
+        If no command is given, any additional keyword arguments are passed to
+            make_command_line() and the resulting command is used.  (This provides
+            sensible defaults.)
         """
+        if command is None:
+            command = make_command_line(**kwargs)
         self.vw_process = pexpect.spawn(command)
-        # TODO: Use spawn(args=args) for more fine-grained control
         self.vw_process.delaybeforesend = 0
         logging.info("Started VW({})".format(command))
-        self.output_pipe = None
         self.command = command
         self.namespaces = []
         self._line = None
@@ -349,4 +350,61 @@ class VW():
         # TODO: Give this a context manager interface
 
     # TODO: Fancy interface for auditing data?
+
+
+def make_command_line(predictions='/dev/stdout',
+                      quiet=True,
+                      save_resume=True,
+                      q_colon=None,
+                      **kwargs
+                      ):
+    """Construct a command line for VW, with each named argument corresponding
+    to a VW option.
+    Single character keys are mapped to single-dash options,
+    e.g. 'b=20' yields '-b 20',
+    while multiple character keys map to double-dash options:
+        'quiet=True' yields '--quiet'
+    Boolean values are interpreted as flags: present if True, absent if False.
+    All other values are treated as option arguments, as in the -b example above.
+    If an option argument is a list, that option is repeated multiple times,
+    e.g. 'q=['ab', 'bc']' yields '-q ab -q bc'
+
+    q_colon is handled specially, mapping to '--q:'.
+
+    Run 'vw -h' for a listing of most options.
+
+    Defaults are well-suited for use with Wabbit Wappa:
+    vw --predictions /dev/stdout --quiet --save_resume
+
+    NOTE: This function makes no attempt to validate the inputs or
+    ensure they are compatible with Wabbit Wappa.
+
+    Outputs a command line string.
+    """
+    args = ['vw']
+    if q_colon:
+        kwargs['q:'] = q_colon
+    kwargs['predictions'] = predictions
+    kwargs['quiet'] = quiet
+    kwargs['save_resume'] = save_resume
+    for key, value in kwargs.items():
+        if len(key)==1:
+            option = '-{}'.format(key)
+        else:
+            option = '--{}'.format(key)
+        if value is True:
+            arg_list = [option]
+        elif isinstance(value, basestring):
+            arg_list = ['{} {}'.format(option, value)]
+        elif hasattr(value, '__getitem__'):  # Listlike value
+            arg_list = [ '{} {}'.format(option, subvalue) for subvalue in value ]
+        else:
+            arg_list = ['{} {}'.format(option, value)]
+        args.extend(arg_list)
+    command = ' '.join(args)
+    return command
+
+
+
+
 

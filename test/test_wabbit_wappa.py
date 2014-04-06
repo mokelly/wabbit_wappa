@@ -33,8 +33,30 @@ def test_escaping():
     assert 'len:gth' not in namespace_string
 
 
+def test_command():
+    command = make_command_line(predictions='/dev/stdout',
+                                quiet=True,
+                                save_resume=True,
+                                compressed=True,
+                                q_colon=['a', 'b'],
+                                b=20,
+                                )
+    # Test that command has all expected elements
+    assert 'vw ' in command
+    assert '--predictions /dev/stdout' in command
+    assert '--quiet' in command
+    assert '--save_resume' in command
+    assert '--compressed' in command
+    assert '--q: a' in command
+    assert '--q: a' in command
+    assert '-b 20' in command
+    assert '--b 20' not in command
+    # Test that VW runs with this command
+    vw = VW(command)
+
+
 def test_training():
-    vw = VW('vw --loss_function logistic -p /dev/stdout --quiet --save_resume')
+    vw = VW(loss_function='logistic')
     # Train with an easy case
     for i in range(20):
         # Positive example
@@ -96,7 +118,7 @@ def test_training():
     vw.save_model(filename)
 
     # Load a new VW instance from that model
-    vw2 = VW('vw --loss_function logistic -p /dev/stdout --quiet -i {}'.format(filename))
+    vw2 = VW(loss_function='logistic', i=filename)
     # Make the same prediction with each model (testing cache_string to boot)
     namespace1 = Namespace(features=[('a', 1), ('b', -2)], cache_string=True)
     namespace2 = Namespace('space1', 1.0, ['X', 'Y'], cache_string=True)
