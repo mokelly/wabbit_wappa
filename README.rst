@@ -131,12 +131,14 @@ Now how good are our predictions?
 
 We can save the model to disk at any point in the process::
 
+    filename = 'capitalization.saved.model'
     vw.save_model(filename)
 
 and reload our model using the 'i' argument::
 
-    vw2 = VW(loss_function='logistic', i=filename)
-    VW command: vw -i capitalization.saved.model --save_resume --quiet --loss_function logistic --predictions /dev/stdout
+    >>> vw2 = VW(loss_function='logistic', i=filename)
+    >>> print vw2.command
+    vw -i capitalization.saved.model --save_resume --quiet --loss_function logistic --predictions /dev/stdout
 
 The `vw2` model will now give just the same predictions that `vw` would have; and the default `save_resume=True` parameter
 means we can continue training from where we left off.

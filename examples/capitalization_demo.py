@@ -7,6 +7,7 @@ by Michael J.T. O'Kelly, 2014-04-02
 
 import string
 import random
+import time
 
 from wabbit_wappa import *
 
@@ -89,3 +90,35 @@ vw2 = VW(loss_function='logistic', i=filename)
 print """vw2 = VW(loss_function='logistic', i=filename)"""
 print "VW command:", vw2.command
 
+print "How fast can we train and test?"
+num_examples = 10000
+# Generate examples ahead of time so we don't measure that overhead
+examples = [ get_example() for i in range(num_examples) ]
+print "Training on", num_examples, "examples..."
+start_time = time.time()
+for example in examples:
+    label, features = example
+    vw2.send_example(label, features=features)
+duration = time.time() - start_time
+frequency = num_examples / duration
+print "Trained", frequency, "examples per second"
+
+start_time = time.time()
+print "Testing on", num_examples, "examples..."
+for example in examples:
+    label, features = example
+    # Give the features to the model, witholding the label
+    prediction = vw2.get_prediction(features)
+duration = time.time() - start_time
+frequency = num_examples / duration
+print "Tested", frequency, "examples per second"
+
+start_time = time.time()
+print "Testing on", num_examples, "examples..."
+line = vw2.make_line(features=features)
+for example in examples:
+    # Give the features to the model, witholding the label
+    prediction = vw2.send_line(line)
+duration = time.time() - start_time
+frequency = num_examples / duration
+print "Tested", frequency, "examples per second"
