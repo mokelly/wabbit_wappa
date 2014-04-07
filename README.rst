@@ -158,15 +158,16 @@ uses namespaces to divide features into groups, which is used for some of its
 advanced features.  Without discussing in detail *why* you would use them,
 here's *how* to use namespaces in Wabbit Wappa.
 
-To reproduce the namespaces in the Vowpal Wabbit tutorial ([url])::
+To reproduce an example from this `Vorpal Wabbit tutorial <https://github.com/JohnLangford/vowpal_wabbit/wiki/v6.1_tutorial.pdf>`_::
 
-    namespace1 = Namespace('MetricFeatures', 3.28, [('height', 1.5), ('length', 2.0)])
-    namespace2 = Namespace('MetricFeatures', 3.28, [('height', 1.5), ('length', 2.0)])
+    namespace1 = Namespace('excuses', 0.1, [('the', 0.01), 'dog', 'ate', 'my', 'homework'])
+    namespace2 = Namespace('teacher', features='male white Bagnell AI ate breakfast'.split())
 
-These namespaces can then be used in training and prediction::
+These namespaces can then be used as examples in training and prediction::
 
-    vw.send_example(response=-1.,
+    vw.send_example(response=1.,
                     importance=.5,
+                    tag="example_39",
                     namespaces=[namespace1, namespace2])
     prediction = vw.get_prediction(namespaces=[namespace1, namespace2])
 
@@ -175,12 +176,12 @@ example or prediction sent to the VW subprocess::
 
     vw.add_namespace(namespace1)
     vw.add_namespace(namespace2)
-    vw.send_example(response=-1., importance=.5)
+    vw.send_example(response=-1., importance=.5, tag="example_39")
 
-or
+or::
 
-    vw.add_namespace('MetricFeatures', 3.28, [('height', 1.5), ('length', 2.0)])
-    vw.add_namespace('MetricFeatures', 3.28, [('height', 1.5), ('length', 2.0)])
+    vw.add_namespace('excuses', 0.1, [('the', 0.01), 'dog', 'ate', 'my', 'homework'])
+    vw.add_namespace('teacher', features='male white Bagnell AI ate breakfast'.split())
     prediction = vw.get_prediction()
 
 Tokens in Vowpal Wabbit may not contain the space character, `:` or `|`.  By default,
@@ -194,10 +195,11 @@ If you wish, you can get the raw VW input lines and pass them to the subprocess 
 
     vw.add_namespace(namespace1)
     vw.add_namespace(namespace2)
-    raw_line = vw.make_line(response=-1., importance=.5)
+    raw_line = vw.make_line(response=1., importance=.5, tag="example_39")
     vw.send_line(raw_line)
 
     >>> print raw_line
+    1.0 0.5 'example_39|excuses:0.1 the:0.01 dog ate my homework |teacher male white Bagnell AI ate breakfast
 
 
 VW Options
