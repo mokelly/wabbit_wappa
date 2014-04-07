@@ -87,28 +87,18 @@ Now train the logistic model by sending 10 labeled examples to the VW learner::
         label, features = get_example()  # Random example; see capitalization_demo.py
         vw.send_example(label, features=features)
 
-From examples like these
+From examples like these::
 
     Label -1: ['z', 'x', 'n', 'F', 'C', 'B', 'f', 'p', 'O'] is mostly lowercase
-    
     Label -1: ['S', 'u', 'e', 'K', 'f', 'w', 'l', 'C', 'd'] is mostly lowercase
-    
     Label -1: ['g', 'v', 'q', 'z', 'x', 'B', 'T', 'p', 'M'] is mostly lowercase
-    
     Label 1: ['j', 'i', 'k', 'D', 'm', 'N', 'Q', 'Z', 'L'] is mostly uppercase
-    
     Label 1: ['B', 'U', 'V', 'R', 'i', 'h', 'T', 'A', 'v'] is mostly uppercase
-    
     Label 1: ['Y', 'u', 'R', 'K', 's', 'X', 'g', 'M', 'j'] is mostly uppercase
-    
     Label -1: ['t', 'L', 'a', 'g', 'D', 'E', 'f', 'G', 'u'] is mostly lowercase
-    
     Label 1: ['F', 'W', 'y', 'i', 'U', 'E', 'X', 'r', 'e'] is mostly uppercase
-    
     Label -1: ['s', 'e', 'h', 'U', 'J', 'C', 'j', 'P', 'b'] is mostly lowercase
-    
     Label 1: ['A', 'k', 'H', 'G', 'a', 'b', 'w', 'Q', 'V'] is mostly uppercase
-    
 
 VW begins to find the pattern: a +1 label if the capital letters outnumber the
 lowercase, and -1 otherwise.
