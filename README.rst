@@ -69,7 +69,7 @@ Usage Example
 
 Let's walk through an example of using Wabbit Wappa.  We will teach VW to recognize
 capitalized characters.
-(You can find the whole script at `examples/capitalization_demo.py`.)
+(You can find the whole script at ``examples/capitalization_demo.py``.)
 
 Start a default VW process in Logistic Regression mode::
 
@@ -90,15 +90,25 @@ Now train the logistic model by sending 10 labeled examples to the VW learner::
 From examples like these
 
     Label -1: ['z', 'x', 'n', 'F', 'C', 'B', 'f', 'p', 'O'] is mostly lowercase
+    
     Label -1: ['S', 'u', 'e', 'K', 'f', 'w', 'l', 'C', 'd'] is mostly lowercase
+    
     Label -1: ['g', 'v', 'q', 'z', 'x', 'B', 'T', 'p', 'M'] is mostly lowercase
+    
     Label 1: ['j', 'i', 'k', 'D', 'm', 'N', 'Q', 'Z', 'L'] is mostly uppercase
+    
     Label 1: ['B', 'U', 'V', 'R', 'i', 'h', 'T', 'A', 'v'] is mostly uppercase
+    
     Label 1: ['Y', 'u', 'R', 'K', 's', 'X', 'g', 'M', 'j'] is mostly uppercase
+    
     Label -1: ['t', 'L', 'a', 'g', 'D', 'E', 'f', 'G', 'u'] is mostly lowercase
+    
     Label 1: ['F', 'W', 'y', 'i', 'U', 'E', 'X', 'r', 'e'] is mostly uppercase
+    
     Label -1: ['s', 'e', 'h', 'U', 'J', 'C', 'j', 'P', 'b'] is mostly lowercase
+    
     Label 1: ['A', 'k', 'H', 'G', 'a', 'b', 'w', 'Q', 'V'] is mostly uppercase
+    
 
 VW begins to find the pattern: a +1 label if the capital letters outnumber the
 lowercase, and -1 otherwise.
@@ -113,8 +123,8 @@ How well trained is our model?  Let's run 100 tests on new random examples::
         if cmp(prediction, 0) == label:
             num_good_tests += 1
 
-(For logistic regression, a `prediction` value greater than zero representa
-a label of +1; that is why `cmp(prediction, 0)` is used.)
+(For logistic regression, a ``prediction`` value greater than zero representa
+a label of +1; that is why ``cmp(prediction, 0)`` is used.)
 
     >>> print "Correctly predicted", num_good_tests, "out of", num_tests
     Correctly predicted 60 out of 100
@@ -140,10 +150,10 @@ and reload our model using the 'i' argument::
     >>> print vw2.command
     vw -i capitalization.saved.model --save_resume --quiet --loss_function logistic --predictions /dev/stdout
 
-The `vw2` model will now give just the same predictions that `vw` would have; and the default `save_resume=True` parameter
+The ``vw2`` model will now give just the same predictions that ``vw`` would have; and the default ``save_resume=True`` parameter
 means we can continue training from where we left off.
 
-To shut down the VW subprocess before your program exits, call `vw.close()`.
+To shut down the VW subprocess before your program exits, call ``vw.close()``.
 
 
 ****************
@@ -184,7 +194,7 @@ or::
     vw.add_namespace('teacher', features='male white Bagnell AI ate breakfast'.split())
     prediction = vw.get_prediction()
 
-Tokens in Vowpal Wabbit may not contain the space character, `:` or `|`.  By default,
+Tokens in Vowpal Wabbit may not contain the space character, ``:`` or ``|``.  By default,
 Wabbit Wappa will detect and escape these characters::
 
     >>> namespace = Namespace('Metric Features', 3.28, [('hei|ght', 1.5), ('len:gth', 2.0)])
@@ -205,22 +215,22 @@ If you wish, you can get the raw VW input lines and pass them to the subprocess 
 VW Options
 ===============
 
-In the `VW()` constructor, each named argument corresponds
+In the ``VW()`` constructor, each named argument corresponds
 to a Vorpal Wabbit option.  Single character keys are mapped to single-dash options;
-e.g. `b=20` yields `-b 20'`.  Multiple character keys map to double-dash options:
-`quiet=True` yields `--quiet`.
+e.g. ``b=20`` yields ``-b 20``.  Multiple character keys map to double-dash options:
+``quiet=True`` yields ``--quiet``.
 
 Boolean values are interpreted as flags: present if True, absent if False (or not given).
-All non-boolean values are treated as option arguments, as in the -b example above.
+All non-boolean values are treated as option arguments, as in the `-b` example above.
 
 If an option argument is a list, that option is repeated multiple times;
-    e.g. `q=['ab', 'bc']` yields `-q ab -q bc`.
+    e.g. ``q=['ab', 'bc']`` yields ``-q ab -q bc``.
 
-Run `vw -h` from your terminal for a listing of most options.
+Run ``vw -h`` from your terminal for a listing of most options.
 
 Note that Wabbit Wappa makes no attempt to validate the inputs or
 ensure they are compatible its functionality.  For instance, changing the
-default `predictions='/dev/stdout'` will probably make that `VW()` instance
+default ``predictions='/dev/stdout'`` will probably make that ``VW()`` instance
 non-functional.
 
 API Documentation
