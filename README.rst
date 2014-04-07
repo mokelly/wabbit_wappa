@@ -214,7 +214,7 @@ Boolean values are interpreted as flags: present if True, absent if False (or no
 All non-boolean values are treated as option arguments, as in the `-b` example above.
 
 If an option argument is a list, that option is repeated multiple times;
-    e.g. ``q=['ab', 'bc']`` yields ``-q ab -q bc``.
+e.g. ``q=['ab', 'bc']`` yields ``-q ab -q bc``.
 
 Run ``vw -h`` from your terminal for a listing of most options.
 
