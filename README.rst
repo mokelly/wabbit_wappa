@@ -2,7 +2,7 @@
 Wabbit Wappa
 ##############
 
-**Wabbit Wappa** is a full-featured Python wrapper for the lightning fast `Vorpal Wabbit <https://github.com/JohnLangford/vowpal_wabbit/wiki>`_ ("VW") 
+**Wabbit Wappa** is a full-featured Python wrapper for the lightning fast `Vowpal Wabbit <https://github.com/JohnLangford/vowpal_wabbit/wiki>`_ ("VW") 
 machine learning utility.  Wabbit Wappa makes it easier to use VW's powerful features while abstracting away its idiosyncratic syntax and interface.
 
 .. contents:: :local:
@@ -11,7 +11,7 @@ machine learning utility.  Wabbit Wappa makes it easier to use VW's powerful fea
 Features
 ****************
 
-* Complete Pythonic wrapper for the Vorpal Wabbit training and test syntax
+* Complete Pythonic wrapper for the Vowpal Wabbit training and test syntax
 * Online training and testing, with no need to restart VW or reload the trained model to go between them
 * Save the trained model on the fly
 
@@ -19,7 +19,7 @@ Features
 Getting Started
 ****************
 
-If you're unfamiliar with Vorpal Wabbit, this documentation is no substitute for 
+If you're unfamiliar with Vowpal Wabbit, this documentation is no substitute for 
 the `detailed tutorials <https://github.com/JohnLangford/vowpal_wabbit/wiki/Tutorial>`_
 at the VW wiki.  You'll eventually need to read those to understand VW's advanced features.
 
@@ -28,7 +28,7 @@ Installation
 
 You have three installation options, depending on your comfort with compiling and installing the VW utility.
 
-**If you already have Vorpal Wabbit installed**::
+**If you already have Vowpal Wabbit installed**::
 
     pip install wabbit_wappa
 
@@ -45,7 +45,7 @@ Then run the included install script (which more or less follows the VW instruct
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib;
     python setup.py install
 
-(The "export" line should be added to your .profile if you don't want to run it every time you use Vorpal Wabbit.)
+(The "export" line should be added to your .profile if you don't want to run it every time you use Vowpal Wabbit.)
 
 **If you want a virtual machine with everything all set up for you:**
     
@@ -161,7 +161,7 @@ uses namespaces to divide features into groups, which is used for some of its
 advanced features.  Without discussing in detail *why* you would use them,
 here's *how* to use namespaces in Wabbit Wappa.
 
-To reproduce an example from this `Vorpal Wabbit tutorial <https://github.com/JohnLangford/vowpal_wabbit/wiki/v6.1_tutorial.pdf>`_::
+To reproduce an example from this `Vowpal Wabbit tutorial <https://github.com/JohnLangford/vowpal_wabbit/wiki/v6.1_tutorial.pdf>`_::
 
     namespace1 = Namespace('excuses', 0.1, [('the', 0.01), 'dog', 'ate', 'my', 'homework'])
     namespace2 = Namespace('teacher', features='male white Bagnell AI ate breakfast'.split())
@@ -209,7 +209,7 @@ VW Options
 ===============
 
 In the ``VW()`` constructor, each named argument corresponds
-to a Vorpal Wabbit option.  Single character keys are mapped to single-dash options;
+to a Vowpal Wabbit option.  Single character keys are mapped to single-dash options;
 e.g. ``b=20`` yields ``-b 20``.  Multiple character keys map to double-dash options:
 ``quiet=True`` yields ``--quiet``.
 
