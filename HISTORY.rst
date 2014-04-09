@@ -22,3 +22,8 @@ History
 * Now installable using pip
 * Updated VW version to 7.6
 * Tweaked line detection to speed up process communication
+
+0.1.1 (2014-04-09)
+=====================
+
+* Fixed typos
