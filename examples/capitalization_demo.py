@@ -112,13 +112,3 @@ for example in examples:
 duration = time.time() - start_time
 frequency = num_examples / duration
 print "Tested", frequency, "examples per second"
-
-start_time = time.time()
-print "Testing on", num_examples, "examples..."
-line = vw2.make_line(features=features)
-for example in examples:
-    # Give the features to the model, witholding the label
-    prediction = vw2.send_line(line)
-duration = time.time() - start_time
-frequency = num_examples / duration
-print "Tested", frequency, "examples per second"

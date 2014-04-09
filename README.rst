@@ -2,7 +2,10 @@
 Wabbit Wappa
 ##############
 
-**Wabbit Wappa** is a full-featured Python wrapper for the lightning fast `Vorpal Wabbit <https://github.com/JohnLangford/vowpal_wabbit/wiki>`_ ("VW") machine learning utility.  Wabbit Wappa makes it easy to use VW's powerful features while not dealing with its idiosyncratic syntax and interface.
+**Wabbit Wappa** is a full-featured Python wrapper for the lightning fast `Vorpal Wabbit <https://github.com/JohnLangford/vowpal_wabbit/wiki>`_ ("VW") 
+machine learning utility.  Wabbit Wappa makes it easier to use VW's powerful features while abstracting away its idiosyncratic syntax and interface.
+
+.. contents:: :local:
 
 ****************
 Features
@@ -23,24 +26,24 @@ at the VW wiki.  You'll eventually need to read those to understand VW's advance
 Installation
 ===============
 
-*Coming soon: install via Pip*
+You have three installation options, depending on your comfort with compiling and installing the VW utility.
+
+**If you already have Vorpal Wabbit installed**::
+
+    pip install wabbit_wappa
+
+**If you still need to install VW (currently version 7.6) and its dependencies**:
 
 Start by cloning the WW repository::
 
     git clone https://github.com/mokelly/wabbit_wappa.git
     cd wabbit_wappa
 
-You have three installation options, depending on your comfort with compiling and installing the VW utility.
+Then run the included install script (which more or less follows the VW instructions)::
 
-**If you already have Vorpal Wabbit installed**::
-
-     python setup.py install
-
-**If you still need to install VW (currently version 7.5) and its dependencies**::
-
-     scripts/vw-install.sh
-     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib;
-     python setup.py install
+    scripts/vw-install.sh
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib;
+    python setup.py install
 
 (The "export" line should be added to your .profile if you don't want to run it every time you use Vorpal Wabbit.)
 
@@ -219,7 +222,7 @@ e.g. ``q=['ab', 'bc']`` yields ``-q ab -q bc``.
 Run ``vw -h`` from your terminal for a listing of most options.
 
 Note that Wabbit Wappa makes no attempt to validate the inputs or
-ensure they are compatible its functionality.  For instance, changing the
+ensure they are compatible with its functionality.  For instance, changing the
 default ``predictions='/dev/stdout'`` will probably make that ``VW()`` instance
 non-functional.
 

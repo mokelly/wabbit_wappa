@@ -200,6 +200,7 @@ class VW():
         if command is None:
             command = make_command_line(**kwargs)
         self.vw_process = pexpect.spawn(command)
+        # Turn off delaybeforesend; this is necessary only in non-applicable cases
         self.vw_process.delaybeforesend = 0
         logging.info("Started VW({})".format(command))
         self.command = command
@@ -222,8 +223,11 @@ class VW():
         return self.raw_output
 
     def _get_response(self):
-        self.vw_process.expect('\r\n')  # Wait until process outputs a complete line
-        self.vw_process.expect('\r\n')  # Wait until process outputs a complete line twice
+        # expect_exact is faster than just exact, and fine for our purpose
+        # (http://pexpect.readthedocs.org/en/latest/api/pexpect.html#pexpect.spawn.expect_exact)
+        # searchwindowsize and other attributes may also affect efficiency
+        self.vw_process.expect_exact('\r\n', searchwindowsize=-1)  # Wait until process outputs a complete line
+        self.vw_process.expect_exact('\r\n', searchwindowsize=-1)  # Wait until process outputs a complete line twice
         # Grabbing two lines seems to be necessary because vw_process.getecho() is True
         output = self.vw_process.before
         if self.raw_output:
