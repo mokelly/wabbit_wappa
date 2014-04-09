@@ -32,7 +32,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='wabbit_wappa',
-    version='0.1.0',
+    version='0.1.1',
     description='Wabbit Wappa is a full-featured Python wrapper for the Vowpal Wabbit machine learning utility.',
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author="Michael J.T. O'Kelly",
