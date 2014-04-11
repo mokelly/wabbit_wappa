@@ -9,8 +9,6 @@ TODO:
     -Abstraction for passes (with automatic usage of example cache)
 -Example for README: Active learning interface
 -Sklearn compatibility (like vowpal_porpoise)
--Handle echo mode introspectively.  Include unit test in which it's switched manually.
--Installable with pip
 
 
 by Michael J.T. O'Kelly, 2014-2-24
@@ -25,6 +23,8 @@ import logging
 import re
 
 import pexpect
+
+import active_learner
 
 
 class WabbitInvalidCharacter(ValueError):
@@ -167,7 +167,7 @@ class Namespace():
 
 class VW():
     """Wrapper for VW executable, handling online input and outputs."""
-    def __init__(self, command=None, raw_output=False, **kwargs):
+    def __init__(self, command=None, raw_output=False, active_mode=False, **kwargs):
         """'command' is the full command-line necessary to run VW.  E.g.
         vw --loss_function logistic -p /dev/stdout --quiet
         -p /dev/stdout --quiet is mandatory for compatibility,
@@ -181,17 +181,28 @@ class VW():
 
         raw_output: Instead of returning parsed float(s) in response to examples,
             return the string literal.
+        active_mode: Launch VW in port-listening active learning mode, controlled via
+            a simulated subprocess.
 
         If no command is given, any additional keyword arguments are passed to
             make_command_line() and the resulting command is used.  (This provides
             sensible defaults.)
         """
         if command is None:
+            if active_mode:
+                active_settings = active_learner.get_active_default_settings()
+                # Overwrite active settings with kwargs
+                active_settings.update(kwargs)
+                kwargs = active_settings
+                port = kwargs.get('port')
             command = make_command_line(**kwargs)
-        self.vw_process = pexpect.spawn(command)
-        # Turn off delaybeforesend; this is necessary only in non-applicable cases
-        self.vw_process.delaybeforesend = 0
-        self.vw_process.setecho(False)
+        if active_mode:
+            self.vw_process = active_learner.ActiveVWProcess(command, port=port)
+        else:
+            self.vw_process = pexpect.spawn(command)
+            # Turn off delaybeforesend; this is necessary only in non-applicable cases
+            self.vw_process.delaybeforesend = 0
+            self.vw_process.setecho(False)
         logging.info("Started VW({})".format(command))
         self.command = command
         self.namespaces = []
@@ -358,10 +369,7 @@ class VW():
         that the current model be serialized to model_filename immediately."""
         line = "save_{}|".format(model_filename)
         self.vw_process.sendline(line)
-        # self.vw_process.expect('\r\n')  # Wait until process outputs a complete line
-        # Only the echo will be emitted as a result for this command
-        result = self.vw_process.before
-        return result
+        # No response is expected in this case
 
     def close(self):
         """Shut down the VW process."""
