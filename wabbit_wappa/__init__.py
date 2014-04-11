@@ -2,24 +2,13 @@
 Wrapper for Vowpal Wabbit executable
 
 TODO: 
-**-Unit tests.  Reproduce examples from wiki and from
-    http://hunch.net/~vw/validate.html
--Documentation.  Use mkdocs and something like picnic to put
-    this on PyPI in elegant style.
-**-Command line generation.  Beginner's mode for common scenarios
-    (and a framework to build from).  Accept short or long form.
--Performance testing.  How much time is spent in wappa vs. VW?
 -Detect VW version in unit tests; for command line generation scenarios,
     unit tests should detect whether it works as expected.
 -Scenario assistance; e.g. caching examples for reuse in multi-pass
     (This would make good example code also.)
     -Abstraction for passes (with automatic usage of example cache)
--Example for README: Alternate train and testing to show how regressor converges over time
 -Example for README: Active learning interface
 -Sklearn compatibility (like vowpal_porpoise)
-**-Vagrant that builds and installs dependencies (including VW) automatically
-    **Then run unit tests to verify install
--Use pexpect.which() to find executable automatically
 -Handle echo mode introspectively.  Include unit test in which it's switched manually.
 -Installable with pip
 
@@ -202,6 +191,7 @@ class VW():
         self.vw_process = pexpect.spawn(command)
         # Turn off delaybeforesend; this is necessary only in non-applicable cases
         self.vw_process.delaybeforesend = 0
+        self.vw_process.setecho(False)
         logging.info("Started VW({})".format(command))
         self.command = command
         self.namespaces = []
@@ -226,7 +216,7 @@ class VW():
         # expect_exact is faster than just exact, and fine for our purpose
         # (http://pexpect.readthedocs.org/en/latest/api/pexpect.html#pexpect.spawn.expect_exact)
         # searchwindowsize and other attributes may also affect efficiency
-        self.vw_process.expect_exact('\r\n', searchwindowsize=-1)  # Wait until process outputs a complete line
+        # self.vw_process.expect_exact('\r\n', searchwindowsize=-1)  # Wait until process outputs a complete line
         self.vw_process.expect_exact('\r\n', searchwindowsize=-1)  # Wait until process outputs a complete line twice
         # Grabbing two lines seems to be necessary because vw_process.getecho() is True
         output = self.vw_process.before
@@ -358,7 +348,7 @@ class VW():
         that the current model be serialized to model_filename immediately."""
         line = "save_{}|".format(model_filename)
         self.vw_process.sendline(line)
-        self.vw_process.expect('\r\n')  # Wait until process outputs a complete line
+        # self.vw_process.expect('\r\n')  # Wait until process outputs a complete line
         # Only the echo will be emitted as a result for this command
         result = self.vw_process.before
         return result
