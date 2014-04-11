@@ -98,7 +98,9 @@ print "Training on", num_examples, "examples..."
 start_time = time.time()
 for example in examples:
     label, features = example
-    vw2.send_example(label, features=features)
+    # Turning off parse_result mode speeds up training when we
+    # don't care about the result of each example
+    vw2.send_example(label, features=features, parse_result=False)
 duration = time.time() - start_time
 frequency = num_examples / duration
 print "Trained", frequency, "examples per second"

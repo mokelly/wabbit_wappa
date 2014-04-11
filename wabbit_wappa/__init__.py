@@ -198,12 +198,14 @@ class VW():
         self._line = None
         self.set_raw_output(raw_output)
 
-    def send_line(self, line):
+    def send_line(self, line, parse_result=True):
         """Submit a raw line of text to the VW instance, returning the 
         VW output result, formatted according to self.raw_output.
+
+        If 'parse_result' is False, ignore the result and return None.
         """
         self.vw_process.sendline(line)  # Send line, along with newline
-        result = self._get_response()
+        result = self._get_response(parse_result=parse_result)
         return result
 
     def set_raw_output(self, raw_output):
@@ -212,7 +214,8 @@ class VW():
         self.raw_output = raw_output
         return self.raw_output
 
-    def _get_response(self):
+    def _get_response(self, parse_result=True):
+        """If 'parse_result' is False, ignore the received output and return None."""
         # expect_exact is faster than just exact, and fine for our purpose
         # (http://pexpect.readthedocs.org/en/latest/api/pexpect.html#pexpect.spawn.expect_exact)
         # searchwindowsize and other attributes may also affect efficiency
@@ -223,24 +226,27 @@ class VW():
         if self.raw_output:
             result_value = output  # Return the output unchanged
         else:
-            result_list = []
-            # TODO: Something more robust than whitespace splitting
-            #   to handle modes like --audit ?
-            for token in output.split():
-                try:
-                    result = float(token)
-                    result_list.append(result)
-                except ValueError:
-                    # Ignore tokens that can't be made into floats (like tags)
-                    logging.debug("Ignoring non-float token {}".format(token))
-            if len(result_list) == 1:
-                result_value = result_list[0]
-            elif len(result_list) > 1:
-                result_value = result_list
+            if parse_result:
+                result_list = []
+                # TODO: Something more robust than whitespace splitting
+                #   to handle modes like --audit ?
+                for token in output.split():
+                    try:
+                        result = float(token)
+                        result_list.append(result)
+                    except ValueError:
+                        # Ignore tokens that can't be made into floats (like tags)
+                        logging.debug("Ignoring non-float token {}".format(token))
+                if len(result_list) == 1:
+                    result_value = result_list[0]
+                elif len(result_list) > 1:
+                    result_value = result_list
+                else:
+                    # If no floats were found, return the unparsed output
+                    # TODO: Should an exception be raised here instead?
+                    result_value = output
             else:
-                # If no floats were found, return the unparsed output
-                # TODO: Should an exception be raised here instead?
-                result_value = output
+                result_value = None
         return result_value
 
     def send_example(self,
@@ -248,12 +254,16 @@ class VW():
                      **kwargs
                      ):
         """Send a labeled or unlabeled example to the VW instance.
-        All parameters are passed to self.send_line().
+        If 'parse_result' kwarg is False, ignore the result and return None.
+
+        All other parameters are passed to self.send_line().
 
         Returns the VW output result, formatted according to self.raw_output.
         """
+        # Pop out the keyword argument 'parse_result' if given
+        parse_result = kwargs.pop('parse_result', True)
         line = self.make_line(*args, **kwargs)
-        result = self.send_line(line)
+        result = self.send_line(line, parse_result=parse_result)
         return result
 
     def make_line(self,
