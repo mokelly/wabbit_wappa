@@ -237,7 +237,7 @@ When getting labeled data is very expensive (such as when users must be solicite
 their preferences), an Active Learning approach assigns an "importance" value to each
 unlabeled example, so that only the most critical labels need be acquired.
 
-Vowpal Wabbit's `Active Learning <https://github.com/JohnLangford/vowpal_wabbit/wiki>`_
+Vowpal Wabbit's `Active Learning <https://github.com/JohnLangford/vowpal_wabbit/wiki/active_learning.pdf>`_
 interface requires you to start a VW instance in server mode and communicate with it
 via a socket.  Wabbit Wappa abstracts all that away, providing the same interface for both
 regular and Active learning::
