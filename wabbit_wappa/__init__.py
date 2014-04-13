@@ -165,9 +165,40 @@ class Namespace():
         return result_list
 
 
+class VWResult():
+    """Parses VW string output into consistent structure"""
+    def __init__(self, result_string, active_mode=False):
+        """Set 'active_mode' to True to parse results in
+        an Active Learning context."""
+        self.raw_output = result_string
+        result_list = []
+        # TODO: Something more robust than whitespace splitting
+        #   to handle modes like --audit ?
+        for token in result_string.split():
+            try:
+                result = float(token)
+                result_list.append(result)
+            except ValueError:
+                # Ignore tokens that can't be made into floats (like tags)
+                logging.debug("Ignoring non-float token {}".format(token))
+        self.value_list = result_list
+        if result_list:
+            self.prediction = result_list[0]
+        else:
+            self.prediction = None
+        if active_mode:
+            if len(result_list) > 1:
+                self.importance = result_list[1]
+            else:
+                self.importance = 0.
+
+    def __str__(self):
+        return str(self.__dict__)
+
+
 class VW():
     """Wrapper for VW executable, handling online input and outputs."""
-    def __init__(self, command=None, raw_output=False, active_mode=False, **kwargs):
+    def __init__(self, command=None, active_mode=False, **kwargs):
         """'command' is the full command-line necessary to run VW.  E.g.
         vw --loss_function logistic -p /dev/stdout --quiet
         -p /dev/stdout --quiet is mandatory for compatibility,
@@ -179,8 +210,6 @@ class VW():
         wabbit_wappa.py does not support any mode that turns off piping to
         stdin or stdout
 
-        raw_output: Instead of returning parsed float(s) in response to examples,
-            return the string literal.
         active_mode: Launch VW in port-listening active learning mode, controlled via
             a simulated subprocess.
 
@@ -196,6 +225,7 @@ class VW():
                 kwargs = active_settings
                 port = kwargs.get('port')
             command = make_command_line(**kwargs)
+        self.active_mode = active_mode
         if active_mode:
             self.vw_process = active_learner.ActiveVWProcess(command, port=port)
         else:
@@ -207,11 +237,10 @@ class VW():
         self.command = command
         self.namespaces = []
         self._line = None
-        self.set_raw_output(raw_output)
 
     def send_line(self, line, parse_result=True):
-        """Submit a raw line of text to the VW instance, returning the 
-        VW output result, formatted according to self.raw_output.
+        """Submit a raw line of text to the VW instance, returning a 
+        VWResult() object.
 
         If 'parse_result' is False, ignore the result and return None.
         """
@@ -219,46 +248,18 @@ class VW():
         result = self._get_response(parse_result=parse_result)
         return result
 
-    def set_raw_output(self, raw_output):
-        """Set the value of raw_output, which determines whether VW output
-        is parsed into float(s) or returned literally."""
-        self.raw_output = raw_output
-        return self.raw_output
-
     def _get_response(self, parse_result=True):
         """If 'parse_result' is False, ignore the received output and return None."""
         # expect_exact is faster than just exact, and fine for our purpose
         # (http://pexpect.readthedocs.org/en/latest/api/pexpect.html#pexpect.spawn.expect_exact)
         # searchwindowsize and other attributes may also affect efficiency
-        # self.vw_process.expect_exact('\r\n', searchwindowsize=-1)  # Wait until process outputs a complete line
-        self.vw_process.expect_exact('\r\n', searchwindowsize=-1)  # Wait until process outputs a complete line twice
-        # Grabbing two lines seems to be necessary because vw_process.getecho() is True
-        output = self.vw_process.before
-        if self.raw_output:
-            result_value = output  # Return the output unchanged
+        self.vw_process.expect_exact('\r\n', searchwindowsize=-1)  # Wait until process outputs a complete line
+        if parse_result:
+            output = self.vw_process.before
+            result_struct = VWResult(output, active_mode=self.active_mode)
         else:
-            if parse_result:
-                result_list = []
-                # TODO: Something more robust than whitespace splitting
-                #   to handle modes like --audit ?
-                for token in output.split():
-                    try:
-                        result = float(token)
-                        result_list.append(result)
-                    except ValueError:
-                        # Ignore tokens that can't be made into floats (like tags)
-                        logging.debug("Ignoring non-float token {}".format(token))
-                if len(result_list) == 1:
-                    result_value = result_list[0]
-                elif len(result_list) > 1:
-                    result_value = result_list
-                else:
-                    # If no floats were found, return the unparsed output
-                    # TODO: Should an exception be raised here instead?
-                    result_value = output
-            else:
-                result_value = None
-        return result_value
+            result_struct = None
+        return result_struct
 
     def send_example(self,
                      *args,
@@ -269,7 +270,7 @@ class VW():
 
         All other parameters are passed to self.send_line().
 
-        Returns the VW output result, formatted according to self.raw_output.
+        Returns a VWResult object.
         """
         # Pop out the keyword argument 'parse_result' if given
         parse_result = kwargs.pop('parse_result', True)
@@ -357,7 +358,7 @@ class VW():
         Uses any given features or namespaces, as well as any previously
         added namespaces (using them up in the process).
 
-        Returns the VW output result, formatted according to self.raw_output."""
+        Returns a VWResult object."""
         if features is not None:
             namespace = Namespace(features=features)
             self.add_namespace(namespace)
@@ -366,7 +367,8 @@ class VW():
 
     def save_model(self, model_filename):
         """Pass a "command example" to the VW subprocess requesting
-        that the current model be serialized to model_filename immediately."""
+        that the current model be serialized to model_filename immediately.
+        """
         line = "save_{}|".format(model_filename)
         self.vw_process.sendline(line)
         # No response is expected in this case

@@ -53,7 +53,7 @@ num_good_tests = 0
 for i in range(num_tests):
     label, features = get_example()
     # Give the features to the model, witholding the label
-    prediction = vw.get_prediction(features)
+    prediction = vw.get_prediction(features).prediction
     # Test whether the floating-point prediction is in the right direction
     if cmp(prediction, 0) == label:
         num_good_tests += 1
@@ -72,7 +72,7 @@ num_good_tests = 0
 for i in range(num_tests):
     label, features = get_example()
     # Give the features to the model, witholding the label
-    prediction = vw.get_prediction(features)
+    prediction = vw.get_prediction(features).prediction
     # Test whether the floating-point prediction is in the right direction
     if cmp(prediction, 0) == label:
         num_good_tests += 1
@@ -110,7 +110,7 @@ print "Testing on", num_examples, "examples..."
 for example in examples:
     label, features = example
     # Give the features to the model, witholding the label
-    prediction = vw2.get_prediction(features)
+    prediction = vw2.get_prediction(features).prediction
 duration = time.time() - start_time
 frequency = num_examples / duration
 print "Tested", frequency, "examples per second"

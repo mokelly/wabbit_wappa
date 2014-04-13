@@ -111,7 +111,8 @@ How well trained is our model?  Let's run 100 tests on new random examples::
     for i in range(num_tests):
         label, features = get_example()
         # Give the features to the model, witholding the label
-        prediction = vw.get_prediction(features)
+        response = vw.get_prediction(features)
+        prediction = response.prediction
         # Test whether the floating-point prediction is in the right direction
         if cmp(prediction, 0) == label:
             num_good_tests += 1
@@ -172,7 +173,8 @@ These namespaces can then be used as examples in training and prediction::
                     importance=.5,
                     tag="example_39",
                     namespaces=[namespace1, namespace2])
-    prediction = vw.get_prediction(namespaces=[namespace1, namespace2])
+    response = vw.get_prediction(namespaces=[namespace1, namespace2])
+    prediction = response.prediction
 
 Alternatively, Namespaces can be queued up to be used automatically in the next
 example or prediction sent to the VW subprocess::
@@ -185,7 +187,8 @@ or::
 
     vw.add_namespace('excuses', 0.1, [('the', 0.01), 'dog', 'ate', 'my', 'homework'])
     vw.add_namespace('teacher', features='male white Bagnell AI ate breakfast'.split())
-    prediction = vw.get_prediction()
+    response = vw.get_prediction()
+    prediction = response.prediction
 
 Tokens in Vowpal Wabbit may not contain the space character, ``:`` or ``|``.  By default,
 Wabbit Wappa will detect and escape these characters::
@@ -225,6 +228,28 @@ Note that Wabbit Wappa makes no attempt to validate the inputs or
 ensure they are compatible with its functionality.  For instance, changing the
 default ``predictions='/dev/stdout'`` will probably make that ``VW()`` instance
 non-functional.
+
+Active Learning
+=================
+
+Active Learning is an approach to training somewhere between supervised and unsupervised.
+When getting labeled data is very expensive (such as when users must be solicited for
+their preferences), an Active Learning approach assigns an "importance" value to each
+unlabeled example, so that only the most critical labels need be acquired.
+
+Vowpal Wabbit's `Active Learning <https://github.com/JohnLangford/vowpal_wabbit/wiki>`_
+interface requires you to start a VW instance in server mode and communicate with it
+via a socket.  Wabbit Wappa abstracts all that away, providing the same interface for both
+regular and Active learning::
+
+    vw = VW(loss_function='logistic', active_mode=True, active_mellowness=0.1)
+    response = vw.get_prediction(features)
+    if response.importance >= 1.:
+        label = get_expensive_label(features)
+        vw.send_example(label, features=features)
+
+See ``examples/active_learning_demo.py`` for a fully worked example.
+
 
 API Documentation
 ===================

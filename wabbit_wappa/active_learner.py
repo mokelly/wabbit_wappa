@@ -16,7 +16,7 @@ import pexpect
 
 DEFAULT_PORT = 26542
 CONNECTION_WAIT = 0.1  # Time between socket connection attempts
-MAX_CONNECTION_ATTEMPTS = 20
+MAX_CONNECTION_ATTEMPTS = 50
 
 
 def get_active_default_settings():

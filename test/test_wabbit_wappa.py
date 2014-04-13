@@ -1,6 +1,7 @@
 
 import random
 import os
+import time
 
 from wabbit_wappa import *
 
@@ -56,78 +57,83 @@ def test_command():
 
 
 def test_training():
-    vw = VW(loss_function='logistic')
-    # Train with an easy case
-    for i in range(20):
-        # Positive example
-        vw.send_example(response=1.,
-                        importance=2.,
-                        tag='positive',
-                        features=[('a', 1 + random.random()),
-                                  ('b', -1 - random.random())]
-                        )
-        vw.send_example(response=-1.,
-                        importance=.5,
-                        tag='negative',
-                        features=[('lungfish', 1 + random.random()),
-                                  ('palooka', -1 - random.random())]
-                        )
-    prediction1 = vw.get_prediction([('a', 1),
-                                    ('b', -2)])
-    # Prediction should be definitively positive
-    assert prediction1 > 1.
-    prediction2 = vw.get_prediction([('lungfish', 3)])
-    # Prediction should be negative
-    assert prediction2 < 0
-    prediction3 = vw.get_prediction([('a', 1),
-                                    ('b', -2)])
-    # Making predictions shouldn't affect the trained model
-    assert prediction1 == prediction3
+    # TODO: pytest probably has a framework for testing hyperparameters like this
+    for active_mode in [False, True]:
+        vw = VW(loss_function='logistic', active_mode=active_mode)
+        # Train with an easy case
+        for i in range(20):
+            # Positive example
+            vw.send_example(response=1.,
+                            importance=2.,
+                            tag='positive',
+                            features=[('a', 1 + random.random()),
+                                      ('b', -1 - random.random())]
+                            )
+            vw.send_example(response=-1.,
+                            importance=.5,
+                            tag='negative',
+                            features=[('lungfish', 1 + random.random()),
+                                      ('palooka', -1 - random.random())]
+                            )
+        prediction1 = vw.get_prediction([('a', 1),
+                                        ('b', -2)]).prediction
+        # Prediction should be definitively positive
+        assert prediction1 > 1.
+        prediction2 = vw.get_prediction([('lungfish', 3)]).prediction
+        # Prediction should be negative
+        assert prediction2 < 0
+        prediction3 = vw.get_prediction([('a', 1),
+                                        ('b', -2)]).prediction
+        # Making predictions shouldn't affect the trained model
+        assert prediction1 == prediction3
 
-    # Continue training with very different examples
-    for i in range(20):
-        # Positive example
+        # Continue training with very different examples
+        for i in range(20):
+            # Positive example
+            vw.add_namespace('space1',
+                             1.0,
+                             ['X', 'Y', 'Z'],
+                             )
+            vw.send_example(response=1.)
+            # Negative example
+            vw.add_namespace('space2',
+                             2.0,
+                             ['X', 'Y', 'Z'],
+                             )
+            vw.send_example(response=-1.)
         vw.add_namespace('space1',
                          1.0,
-                         ['X', 'Y', 'Z'],
+                         ['X'],
                          )
-        vw.send_example(response=1.)
-        # Negative example
+        prediction4 = vw.get_prediction().prediction
+        # Prediction should be positive
+        assert prediction4 > 0
         vw.add_namespace('space2',
-                         2.0,
-                         ['X', 'Y', 'Z'],
+                         1.0,
+                         ['X'],
                          )
-        vw.send_example(response=-1.)
-    vw.add_namespace('space1',
-                     1.0,
-                     ['X'],
-                     )
-    prediction4 = vw.get_prediction()
-    # Prediction should be positive
-    assert prediction4 > 0
-    vw.add_namespace('space2',
-                     1.0,
-                     ['X'],
-                     )
-    prediction5 = vw.get_prediction()
-    # Prediction should be negative
-    assert prediction5 < 0
+        prediction5 = vw.get_prediction().prediction
+        # Prediction should be negative
+        assert prediction5 < 0
 
-    # Save the model to a temporary file
-    filename = '__temp.model'
-    vw.save_model(filename)
+        # Save the model to a temporary file
+        filename = '__temp.model'
+        vw.save_model(filename)
+        # This sleep is required only in active_mode, in the (unusual) case
+        # that the model file is used immediately
+        time.sleep(0.1)
 
-    # Load a new VW instance from that model
-    vw2 = VW(loss_function='logistic', i=filename)
-    # Make the same prediction with each model (testing cache_string to boot)
-    namespace1 = Namespace(features=[('a', 1), ('b', -2)], cache_string=True)
-    namespace2 = Namespace('space1', 1.0, ['X', 'Y'], cache_string=True)
-    prediction1 = vw.get_prediction(namespaces=[namespace1, namespace2])
-    prediction2 = vw2.get_prediction(namespaces=[namespace1, namespace2])
-    assert prediction1 == prediction2
-    assert prediction1 > 1.
+        # Load a new VW instance from that model
+        vw2 = VW(loss_function='logistic', i=filename)
+        # Make the same prediction with each model (testing cache_string to boot)
+        namespace1 = Namespace(features=[('a', 1), ('b', -2)], cache_string=True)
+        namespace2 = Namespace('space1', 1.0, ['X', 'Y'], cache_string=True)
+        prediction1 = vw.get_prediction(namespaces=[namespace1, namespace2]).prediction
+        prediction2 = vw2.get_prediction(namespaces=[namespace1, namespace2]).prediction
+        assert prediction1 == prediction2
+        assert prediction1 > 1.
 
-    # Clean up
-    vw.close()
-    vw2.close()
-    os.remove(filename)
+        # Clean up
+        vw.close()
+        vw2.close()
+        os.remove(filename)
