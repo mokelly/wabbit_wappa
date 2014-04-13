@@ -16,7 +16,7 @@ by Michael J.T. O'Kelly, 2014-2-24
 
 __author__ = "Michael J.T. O'Kelly"
 __email__ = 'mokelly@gmail.com'
-__version__ = '0.1.2'
+__version__ = '0.2.0'
 
 
 import logging
