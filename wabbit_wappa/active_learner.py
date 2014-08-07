@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function, division, absolute_import, unicode_literals
+
 """
 Interface for VW's active learning mode, which must be communicated with
 over a socked.
@@ -32,11 +35,13 @@ def recvall(s, n):
     buf = s.recv(n)
     ret = len(buf)
     while ret > 0 and len(buf) < n:
-        if buf[-1] == '\n':
+        if buf.endswith(b'\n'):
             break
+
         tmp = s.recv(n)
         ret = len(tmp)
         buf = buf + tmp
+
     return buf
 
 
@@ -65,6 +70,9 @@ class ActiveVWProcess():
 
     def sendline(self, line):
         line = line + '\n'  # This would have been added automatically by pexpect
+        if not isinstance(line, bytes):
+            line = line.encode('UTF-8')
+
         self.sock.sendall(line)
 
     def expect_exact(self, *args, **kwargs):
@@ -72,7 +80,7 @@ class ActiveVWProcess():
         but just sets self.before to the latest response line."""
         response = recvall(self.sock, 256)
         self.before = response.strip()
-        # print self.before
+        # print(self.before)
 
     def close(self):
         self.sock.close()

@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function, division, absolute_import, unicode_literals
+
 """
 Demonstrate Wabbit Wappa by learning to tell capital letters from lowercase.
 
@@ -31,25 +34,25 @@ def get_example():
 
 MELLOWNESS=0.1
 
-print "Start a Vowpal Wabbit learner in logistic regression mode"
-print "Active Learning mellowness:", MELLOWNESS
+print("Start a Vowpal Wabbit learner in logistic regression mode")
+print("Active Learning mellowness:", MELLOWNESS)
 vw = VW(loss_function='logistic', active_mode=True, active_mellowness=MELLOWNESS)
-print """vw = VW(loss_function='logistic')"""
+print("""vw = VW(loss_function='logistic')""")
 # Print the command line used for the VW process
-print "VW command:", vw.command
-print
+print("VW command:", vw.command)
+print()
 
-print "Now generate 10 training examples, feeding them to VW one by one."
+print("Now generate 10 training examples, feeding them to VW one by one.")
 for i in range(10):
     label, features = get_example()
     if label > 0:
-        print "Label {}: {} is mostly uppercase".format(label, features)
+        print("Label {}: {} is mostly uppercase".format(label, features))
     else:
-        print "Label {}: {} is mostly lowercase".format(label, features)
+        print("Label {}: {} is mostly lowercase".format(label, features))
     vw.send_example(label, features=features)
-print
+print()
 
-print "How well trained is our model?  Let's make 100 tests."
+print("How well trained is our model?  Let's make 100 tests.")
 num_tests = 100
 num_good_tests = 0
 for i in range(num_tests):
@@ -58,24 +61,24 @@ for i in range(num_tests):
     response = vw.get_prediction(features)
     prediction, importance = response.prediction, response.importance
     # Test whether the floating-point prediction is in the right direction
-    if cmp(prediction, 0) == label:
+    if prediction * label > 0:
         num_good_tests += 1
-print "Correctly predicted", num_good_tests, "out of", num_tests
-print
+print("Correctly predicted", num_good_tests, "out of", num_tests)
+print()
 
-print "Let's generate 1,000 more samples for training, sending labels only for those the Active Learner marks as important"
+print("Let's generate 1,000 more samples for training, sending labels only for those the Active Learner marks as important")
 important_example_count = 0
 for i in range(1000):
     label, features = get_example()
     response = vw.get_prediction(features)
     if response.importance >= 1.:
-        print "Training with example {}, importance {}: {}".format(i, response.importance, features)
+        print("Training with example {}, importance {}: {}".format(i, response.importance, features))
         vw.send_example(label, features=features)
         important_example_count += 1
-print "Found", important_example_count, "important examples"
-print
+print("Found", important_example_count, "important examples")
+print()
 
-print "Now how good are our predictions?"
+print("Now how good are our predictions?")
 num_tests = 100
 num_good_tests = 0
 for i in range(num_tests):
@@ -84,16 +87,16 @@ for i in range(num_tests):
     response = vw.get_prediction(features)
     prediction, importance = response.prediction, response.importance
     # Test whether the floating-point prediction is in the right direction
-    if cmp(prediction, 0) == label:
+    if prediction * label > 0:
         num_good_tests += 1
-print "Correctly predicted", num_good_tests, "out of", num_tests
-print
+print("Correctly predicted", num_good_tests, "out of", num_tests)
+print()
 
-print "How fast can we train and test?"
+print("How fast can we train and test?")
 num_examples = 10000
 # Generate examples ahead of time so we don't measure that overhead
 examples = [ get_example() for i in range(num_examples) ]
-print "Training on", num_examples, "examples..."
+print("Training on", num_examples, "examples...")
 important_example_count = 0
 start_time = time.time()
 for example in examples:
@@ -102,13 +105,13 @@ for example in examples:
     if response.importance >= 1:
         vw.send_example(label, features=features)
         important_example_count += 1
-print "Found", important_example_count, "important examples"
+print("Found", important_example_count, "important examples")
 duration = time.time() - start_time
 frequency = num_examples / duration
-print "Trained", frequency, "examples per second"
+print("Trained", frequency, "examples per second")
 
 start_time = time.time()
-print "Testing on", num_examples, "examples..."
+print("Testing on", num_examples, "examples...")
 for example in examples:
     label, features = example
     # Give the features to the model, witholding the label
@@ -118,4 +121,4 @@ for example in examples:
     #     print label, importance, features
 duration = time.time() - start_time
 frequency = num_examples / duration
-print "Tested", frequency, "examples per second"
+print("Tested", frequency, "examples per second")
