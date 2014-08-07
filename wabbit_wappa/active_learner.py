@@ -30,27 +30,15 @@ def get_active_default_settings():
     return result
 
 
-def recvall(s, n):
-    """From active_interactor.py"""
-    buf = s.recv(n)
-    ret = len(buf)
-    while ret > 0 and len(buf) < n:
-        if buf.endswith(b'\n'):
-            break
-
-        tmp = s.recv(n)
-        ret = len(tmp)
-        buf = buf + tmp
-
-    return buf
-
-
 class ActiveVWProcess():
     """Class for spawning and interacting with a WV process
     in active learning mode.  This class implements a subset of the interface
     of a pexpect.spawn() object so that it can be a drop-in replacement
     for the VW.vw_process member.
     """
+
+    _buffer = b''
+
     def __init__(self, command, port=DEFAULT_PORT):
         """'command' is assumed to have the necessary options for use with this
         class, which should be guaranteed in the calling context."""
@@ -75,12 +63,29 @@ class ActiveVWProcess():
 
         self.sock.sendall(line)
 
+    def _recvline(self):
+        if b'\n' in self._buffer:
+            line, _, self._buffer = self._buffer.partition(b'\n')
+            return line
+
+        while True:
+            more = self.sock.recv(4096)
+            self._buffer += more
+
+            if not more:
+                rv = self._buffer
+                self._buffer = b''
+                return rv
+
+            if b'\n' in more: 
+                line, _, self._buffer = self._buffer.partition(b'\n')
+                return line
+
     def expect_exact(self, *args, **kwargs):
         """This does not attempt to duplicate the expect_exact API,
         but just sets self.before to the latest response line."""
-        response = recvall(self.sock, 256)
+        response = self._recvline()
         self.before = response.strip()
-        # print(self.before)
 
     def close(self):
         self.sock.close()
