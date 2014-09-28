@@ -198,7 +198,7 @@ class VWResult():
 
 class VW():
     """Wrapper for VW executable, handling online input and outputs."""
-    def __init__(self, command=None, active_mode=False, **kwargs):
+    def __init__(self, command=None, active_mode=False, dummy_mode=False, **kwargs):
         """'command' is the full command-line necessary to run VW.  E.g.
         vw --loss_function logistic -p /dev/stdout --quiet
         -p /dev/stdout --quiet is mandatory for compatibility,
@@ -212,6 +212,8 @@ class VW():
 
         active_mode: Launch VW in port-listening active learning mode, controlled via
             a simulated subprocess.
+        dummy_mode: Don't actually start any VW process.  (Used for assembling
+            VW command lines separately.)
 
         If no command is given, any additional keyword arguments are passed to
             make_command_line() and the resulting command is used.  (This provides
@@ -226,13 +228,17 @@ class VW():
                 port = kwargs.get('port')
             command = make_command_line(**kwargs)
         self.active_mode = active_mode
-        if active_mode:
-            self.vw_process = active_learner.ActiveVWProcess(command, port=port)
+        self.dummy_mode = dummy_mode
+        if dummy_mode:
+            self.vw_process = None
         else:
-            self.vw_process = pexpect.spawn(command)
-            # Turn off delaybeforesend; this is necessary only in non-applicable cases
-            self.vw_process.delaybeforesend = 0
-            self.vw_process.setecho(False)
+            if active_mode:
+                self.vw_process = active_learner.ActiveVWProcess(command, port=port)
+            else:
+                self.vw_process = pexpect.spawn(command)
+                # Turn off delaybeforesend; this is necessary only in non-applicable cases
+                self.vw_process.delaybeforesend = 0
+                self.vw_process.setecho(False)
         logging.info("Started VW({})".format(command))
         self.command = command
         self.namespaces = []
