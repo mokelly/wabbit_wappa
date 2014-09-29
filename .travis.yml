@@ -11,6 +11,7 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: 
   - pip install -r requirements.txt
+  - chmod a+x ./scripts/vw-install.sh
   - ./scripts/vw-install.sh
 
 # command to run tests, e.g. python setup.py test
