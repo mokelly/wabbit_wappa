@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function, division, absolute_import, unicode_literals
+
 """
 Wrapper for Vowpal Wabbit executable
 
@@ -18,14 +21,17 @@ __author__ = "Michael J.T. O'Kelly"
 __email__ = 'mokelly@gmail.com'
 __version__ = '0.2.0'
 
+try:
+    basestring
+except:
+    basestring = str
 
 import logging
 import re
 
 import pexpect
 
-import active_learner
-
+from . import active_learner
 
 class WabbitInvalidCharacter(ValueError):
     pass
