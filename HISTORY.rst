@@ -33,8 +33,8 @@ History
 0.3.0 (2014-10-16)
 ======================
 
-* Python 3 compatibility (thanks `Antti Haapala<https://github.com/ztane>`_!)
-* Much faster line buffering (50% overall speed improvement) (thanks `Antti Haapala<https://github.com/ztane>`_!)
+* Python 3 compatibility (thanks `Antti Haapala <https://github.com/ztane>`_!)
+* Much faster line buffering (50% overall speed improvement) (thanks `Antti Haapala <https://github.com/ztane>`_!)
 * Updated VW version to 7.7
 * Updated Ubuntu in VM to Trusty
 * Travis integration
