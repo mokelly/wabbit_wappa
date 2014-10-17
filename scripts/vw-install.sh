@@ -1,6 +1,6 @@
 #!/bin/bash
-#sudo apt-get -yqqu install libboost-all-dev
-sudo apt-get -yqqu install boost-all-dev
+sudo apt-get -yqqu install libboost-all-dev
+# sudo apt-get -yqqu install boost-all-dev
 # sudo apt-get -yqqu install automake
 # sudo apt-get -yqqu install libtool
 
