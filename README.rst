@@ -32,7 +32,7 @@ You have three installation options, depending on your comfort with compiling an
 
     pip install wabbit_wappa
 
-**If you still need to install VW (currently version 7.6) and its dependencies**:
+**If you still need to install VW (currently version 7.7) and its dependencies**:
 
 Start by cloning the WW repository::
 
