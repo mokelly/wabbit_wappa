@@ -2,6 +2,9 @@
 Wabbit Wappa
 ##############
 
+.. image:: https://travis-ci.org/mokelly/wabbit_wappa.svg?branch=master
+    :target: https://travis-ci.org/mokelly/wabbit_wappa
+
 **Wabbit Wappa** is a full-featured Python wrapper for the lightning fast `Vowpal Wabbit <https://github.com/JohnLangford/vowpal_wabbit/wiki>`_ ("VW") 
 machine learning utility.  Wabbit Wappa makes it easier to use VW's powerful features while abstracting away its idiosyncratic syntax and interface.
 
