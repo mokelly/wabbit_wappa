@@ -10,4 +10,4 @@ Development Lead
 Contributors
 ------------
 
-None yet.  Who will be first??
+* Antti Haapala (`ztane <https://github.com/ztane>`_)
