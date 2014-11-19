@@ -204,7 +204,8 @@ class VWResult():
 
 class VW():
     """Wrapper for VW executable, handling online input and outputs."""
-    def __init__(self, command=None, active_mode=False, dummy_mode=False, **kwargs):
+    def __init__(self, command=None, active_mode=False, dummy_mode=False, daemon_mode=False,
+                 daemon_ip=None, **kwargs):
         """'command' is the full command-line necessary to run VW.  E.g.
         vw --loss_function logistic -p /dev/stdout --quiet
         -p /dev/stdout --quiet is mandatory for compatibility,
@@ -220,32 +221,42 @@ class VW():
             a simulated subprocess.
         dummy_mode: Don't actually start any VW process.  (Used for assembling
             VW command lines separately.)
+        daemon_mode: (Forced to True if active_mode is set).  Communicate with
+            VW as a server instead of as a subprocess.
+            NOTE: This is much faster in tests, and will become default in
+            a future version of WW.
+        daemon_ip: If given, attach to an already-running VW daemon, ignoring
+            all other command-related arguments (other than `port`).
 
         If no command is given, any additional keyword arguments are passed to
             make_command_line() and the resulting command is used.  (This provides
             sensible defaults.)
         """
+        daemon_mode = daemon_mode or active_mode
         if command is None:
             if active_mode:
                 active_settings = active_learner.get_active_default_settings()
                 # Overwrite active settings with kwargs
                 active_settings.update(kwargs)
                 kwargs = active_settings
-                port = kwargs.get('port')
             command = make_command_line(**kwargs)
+        port = kwargs.get('port')
         self.active_mode = active_mode
         self.dummy_mode = dummy_mode
+        self.daemon_mode = daemon_mode
         if dummy_mode:
             self.vw_process = None
         else:
-            if active_mode:
-                self.vw_process = active_learner.ActiveVWProcess(command, port=port)
+            if active_mode or daemon_ip or daemon_mode:
+                self.vw_process = active_learner.DaemonVWProcess(command,
+                                                                 port=port,
+                                                                 ip=daemon_ip)
             else:
                 self.vw_process = pexpect.spawn(command)
                 # Turn off delaybeforesend; this is necessary only in non-applicable cases
                 self.vw_process.delaybeforesend = 0
                 self.vw_process.setecho(False)
-        logging.info("Started VW({})".format(command))
+                logging.info("Started VW({})".format(command))
         self.command = command
         self.namespaces = []
         self._line = None

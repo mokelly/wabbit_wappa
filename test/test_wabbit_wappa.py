@@ -137,3 +137,12 @@ def test_training():
         vw.close()
         vw2.close()
         os.remove(filename)
+
+
+def test_daemons():
+    # Launch one VW in daemon_mode
+    vw = VW(loss_function='logistic', daemon_mode=True, port=30000)
+    # Connect to that one without launching another
+    vw2 = VW(daemon_ip='127.0.0.1', port=30000)
+
+
