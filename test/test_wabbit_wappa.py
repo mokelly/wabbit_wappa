@@ -137,3 +137,19 @@ def test_training():
         vw.close()
         vw2.close()
         os.remove(filename)
+
+def test_long_examples():
+    # TODO: pytest probably has a framework for testing hyperparameters like this
+    for max_range in range(2, 5000, 100):
+        for active_mode in [False, True]:
+            print max_range, active_mode
+            vw = VW(loss_function='logistic', active_mode=active_mode)
+            features = []
+            for i in range(1, max_range):
+                feature = (str(i), 1)
+                features.append(feature)
+            result = vw.send_example(response=1., features=features)
+            if result.prediction is None:
+                raise TypeError("The result should contain a prediction")
+            vw.get_prediction(features=features)
+            vw.close()
