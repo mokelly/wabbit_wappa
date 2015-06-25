@@ -12,13 +12,14 @@ except ImportError:
     from distutils.core import setup, find_packages
 
 from pip.req import parse_requirements
+from pip.download import PipSession
 
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
     sys.exit()
 
 # http://stackoverflow.com/questions/14399534/how-can-i-reference-requirements-txt-for-the-install-requires-kwarg-in-setuptool
-install_reqs = parse_requirements('requirements.txt')
+install_reqs = parse_requirements('requirements.txt', session=PipSession())
 req_list = [str(ir.req) for ir in install_reqs]
 
 readme = open('README.rst').read()
