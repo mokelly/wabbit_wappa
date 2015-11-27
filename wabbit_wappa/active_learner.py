@@ -23,7 +23,7 @@ MAX_CONNECTION_ATTEMPTS = 50
 
 
 def get_active_default_settings():
-    result = dict(active_learning=True,
+    result = dict(active=True,
                   port=DEFAULT_PORT,
                   predictions='/dev/null',
                   )
@@ -45,6 +45,7 @@ class ActiveVWProcess():
         # Launch the VW process, which we will communicate with only
         # via its socket
         self.vw_process = pexpect.spawn(command)
+        time.sleep(5) #the spawned process is not instantly ready for connections
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         connection_tries = 0
         while connection_tries < MAX_CONNECTION_ATTEMPTS:

@@ -19,8 +19,8 @@ if sys.argv[-1] == 'publish':
     sys.exit()
 
 # http://stackoverflow.com/questions/14399534/how-can-i-reference-requirements-txt-for-the-install-requires-kwarg-in-setuptool
-install_reqs = parse_requirements('requirements.txt', session=PipSession())
-req_list = [str(ir.req) for ir in install_reqs]
+#install_reqs = parse_requirements('requirements.txt', session=PipSession())
+#req_list = [str(ir.req) for ir in install_reqs]
 
 readme = open('README.rst').read()
 # doclink = """
@@ -42,7 +42,13 @@ setup(
     packages=find_packages(exclude=['test*']),
     package_dir={'wabbit_wappa': 'wabbit_wappa'},
     include_package_data=True,
-    install_requires=req_list,
+    install_requires=[
+        'pexpect',
+        'pytest',
+        'cookiecutter',
+        'wheel>=0.22',
+        'pip>=1.4',
+    ],
     license='MIT',
     keywords='wabbit_wappa',
     classifiers=[
