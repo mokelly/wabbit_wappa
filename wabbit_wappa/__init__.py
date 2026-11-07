@@ -23,7 +23,7 @@ __version__ = '0.3.0'
 
 try:
     basestring
-except:
+except NameError:
     basestring = str
 
 import logging
